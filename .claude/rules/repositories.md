@@ -37,6 +37,13 @@ interface <Resource>Repository {
 
 ## Implementation
 
+Two variants — pick based on the networking library. Both extend `BaseRepository()` and both return `ApiResult<T>`. The difference is what gets injected:
+
+- **Apollo / GraphQL** → inject a `<Resource>RemoteDataSource` (see `rules/data-sources.md`)
+- **Retrofit** → inject the Retrofit API service directly (no data-source wrapper — Retrofit's interface IS the per-endpoint contract)
+
+### Apollo variant — with a data source
+
 `data/repository/<feature>/<Resource>RepositoryImpl.kt`:
 
 ```kotlin
@@ -52,20 +59,20 @@ class <Resource>RepositoryImpl @Inject constructor(
     override val <resource>Invalidated: SharedFlow<Unit> = _<resource>Invalidated.asSharedFlow()
 
     override suspend fun getById(id: String): ApiResult<<Resource>> =
-        safeCallSuspend(
-            call = remoteDataSource.getById(id),
+        safeApolloCallSuspend(
+            apolloCall = remoteDataSource.getById(id),
             mapper = { it.to<Resource>() },
         )
 
     override fun observe(id: String): Flow<ApiResult<<Resource>>> =
-        safeCall(
-            call = remoteDataSource.observe(id),
+        safeApolloCall(
+            apolloCall = remoteDataSource.observe(id),
             mapper = { it.to<Resource>() },
         )
 
     override suspend fun create(request: Create<Resource>Request): ApiResult<<Resource>> {
-        val result = safeCallSuspend(
-            call = remoteDataSource.create(request.toNetworkInput()),
+        val result = safeApolloCallSuspend(
+            apolloCall = remoteDataSource.create(request.toNetworkInput()),
             mapper = { it.to<Resource>() },
         )
         if (result is ApiResult.Success) _<resource>Invalidated.tryEmit(Unit)
@@ -74,10 +81,47 @@ class <Resource>RepositoryImpl @Inject constructor(
 }
 ```
 
-**Hard rules on the impl:**
-- **Extends `BaseRepository()`** — provides `safeCallSuspend` / `safeCall` that wrap network calls and return `ApiResult<T>`, catching exceptions and translating error bodies
-- **Injects data sources, never the network client directly** — no `ApolloClient` / `Retrofit` field in a repository
-- **Mapping happens inside the `mapper` lambda** — never mid-function or inside the data source
+### Retrofit variant — no data source, direct API-service injection
+
+Retrofit's `interface UserApi { @GET ... }` already provides the per-endpoint contract that Apollo needs a data source to synthesize. Wrapping it in a `UserRemoteDataSource` that just forwards each call is pure ceremony. Inject the API service directly:
+
+```kotlin
+package <PKG_ROOT>.data.repository.<feature>
+
+class <Resource>RepositoryImpl @Inject constructor(
+    private val api: <Resource>Api,
+) : BaseRepository(), <Resource>Repository {
+
+    private val _<resource>Invalidated = MutableSharedFlow<Unit>(
+        replay = 0, extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
+    override val <resource>Invalidated: SharedFlow<Unit> = _<resource>Invalidated.asSharedFlow()
+
+    override suspend fun getById(id: String): ApiResult<<Resource>> =
+        safeCallSuspend(
+            call = { api.getById(id) },
+            mapper = { it.to<Resource>() },
+        )
+
+    override suspend fun create(request: Create<Resource>Request): ApiResult<<Resource>> {
+        val result = safeCallSuspend(
+            call = { api.create(request.toDto()) },
+            mapper = { it.to<Resource>() },
+        )
+        if (result is ApiResult.Success) _<resource>Invalidated.tryEmit(Unit)
+        return result
+    }
+}
+```
+
+The `BaseRepository.safeCallSuspend` Retrofit variant takes a `suspend () -> Response<T>` lambda, checks `.isSuccessful`, translates HTTP errors into `ApiResult.Error(code, message)`, and applies the mapper on success.
+
+Multiple auth contexts in a Retrofit project are handled at the Retrofit builder level — one `@Named("public")` Retrofit instance, one `@Named("user")` Retrofit instance, each producing its own service interface — no data-source layer needed.
+
+**Hard rules on the impl (both variants):**
+- **Extends `BaseRepository()`** — provides `safeCall*` helpers that wrap network calls and return `ApiResult<T>`
+- **Injects the data source (Apollo) or the API service (Retrofit)**, never `ApolloClient` / `Retrofit` itself
+- **Mapping happens inside the `mapper` lambda** — never mid-function
 - **Emit `Invalidated` only on success** — a failed mutation shouldn't invalidate caches
 - **Errors bubble through `ApiResult.Error`** — no exceptions escape a repository method
 
@@ -96,7 +140,9 @@ See `rules/error-handling.md` for `ErrorEventBus` and `UiText` details.
 ## Common violations
 
 - Repository interface returning a network type (e.g. `Response<T>`, `ApolloResponse<D>`) → return `ApiResult<DomainType>`
-- Repository impl injecting `ApolloClient` / `Retrofit` directly → inject a `RemoteDataSource`
+- Repository impl injecting `ApolloClient` directly → inject a `RemoteDataSource` instead (Apollo variant)
+- Repository impl injecting `Retrofit` directly → inject the API service interface (e.g. `<Resource>Api`) instead
+- Retrofit project with a `<Resource>RemoteDataSource` that just forwards each method to the API service → drop the wrapper, inject the API service directly into the repository
 - `try/catch` inside a repository method → use `safeCallSuspend` / `safeCall`
 - Mapper logic inline in the impl body → move to the `mapper` lambda or an extension function in `data/mappers/`
 - `_invalidated.tryEmit(Unit)` on every call, including failures → emit only on `ApiResult.Success`

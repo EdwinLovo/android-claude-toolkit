@@ -257,32 +257,52 @@ class GetCatalogProductsUseCase @Inject constructor(
 
 ## Retrofit variant
 
-Everything above holds; only two things change.
+**Retrofit projects do NOT have a data-source layer.** Skip §3 entirely. Retrofit's `interface UserApi { @GET("users/{id}") suspend fun getProfile(...) }` already provides the clean per-endpoint contract that Apollo needs a data source to synthesize — wrapping it in a `RemoteDataSource` that just forwards each method is pure ceremony.
 
-**Data source signature** — suspending, returns `Response<T>`:
+**What changes vs. the Apollo flow above:**
+
+| Section | Apollo | Retrofit |
+|---|---|---|
+| §2 Network op file | `.graphql` file | New method on the Retrofit service interface |
+| §3 Data source | Interface + impl + DI binding | **Skipped** — the Retrofit service IS the contract |
+| §5 Repository impl | Injects `<Resource>RemoteDataSource`; uses `safeApolloCallSuspend` | Injects the Retrofit API service directly; uses `safeCallSuspend` with a lambda |
+| §7 DI | `ApiModule` provides `ApolloClient`, `DataSourceModule` binds data sources | `ApiModule` provides `Retrofit` and the service via `retrofit.create(UserApi::class.java)`; no `DataSourceModule` |
+
+**Retrofit service (a Retrofit-based §3):**
 
 ```kotlin
-interface UserRemoteDataSource {
-    suspend fun getProfile(id: String): Response<GetProfileResponse>
-}
+package <PKG_ROOT>.data.remote.api
 
-class UserRemoteDataSourceImpl @Inject constructor(
-    @param:Named(RETROFIT_USER) private val api: UserApi,
-) : UserRemoteDataSource {
-    override suspend fun getProfile(id: String) = api.getProfile(id)
+interface <Resource>Api {
+    @GET("<resource>/{id}")
+    suspend fun getById(@Path("id") id: String): Response<<Resource>Dto>
+
+    @POST("<resource>")
+    suspend fun create(@Body body: Create<Resource>Dto): Response<<Resource>Dto>
 }
 ```
 
-**Repository execution** — use the Retrofit variant of `safeCallSuspend`:
+Location: `data/remote/api/<Resource>Api.kt` (not `data/remote/datasource/` — that folder is for the Apollo pattern).
+
+**Repository (Retrofit §5):**
 
 ```kotlin
-override suspend fun getProfile(id: String): ApiResult<Profile> =
-    safeCallSuspend(
-        call = { remoteDataSource.getProfile(id) },
-        mapper = { it.toProfile() },
-    )
+package <PKG_ROOT>.data.repository.<feature>
+
+class <Resource>RepositoryImpl @Inject constructor(
+    private val api: <Resource>Api,
+) : BaseRepository(), <Resource>Repository {
+
+    override suspend fun getById(id: String): ApiResult<<Resource>> =
+        safeCallSuspend(
+            call = { api.getById(id) },
+            mapper = { it.to<Resource>() },
+        )
+}
 ```
 
-`BaseRepository.safeCallSuspend` for Retrofit takes a `suspend () -> Response<T>` lambda, checks `.isSuccessful`, and translates HTTP errors into `ApiResult.Error(code, message)`.
+`BaseRepository.safeCallSuspend` for Retrofit takes a `suspend () -> Response<T>` lambda, checks `.isSuccessful`, translates HTTP errors into `ApiResult.Error(code, message)`, and applies the mapper on success.
 
-Mappers, DI, use cases, and the folder layout are identical to the Apollo variant.
+**Multiple auth contexts (Retrofit §3 replacement):** handle at the Retrofit builder — one `@Named("public") Retrofit`, one `@Named("user") Retrofit`, each producing its own service interface via `retrofit.create(...)`. `ApiModule` provides both.
+
+Everything else — domain models (§1), repository interface (§4), mappers (§6, adjusted for DTO→domain rather than Apollo→domain), use cases (§8), the checklist (§9) — is identical to the Apollo flow, minus every "data source" step.
