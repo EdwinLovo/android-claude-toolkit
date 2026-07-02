@@ -14,7 +14,7 @@ A contract file pairs a `<Name>UiState` (data class) with a `<Name>Event` (seale
 |---|---|---|
 | **Screen** | `presentation/ux/<feature>/contracts/<Screen>Contract.kt` | Standalone `sealed interface <Screen>Event` |
 | **Feature delegate child** | `presentation/ux/<feature>/contracts/<Child>Contract.kt` (sibling of the screen contract) | `sealed interface <Child>Event : <Screen>Event` — extends the screen event |
-| **Shared delegate** | `presentation/delegates/<name>/<Name>Contract.kt` (co-located with the delegate, NOT in a `contracts/` folder) | Standalone `sealed interface <Name>Event` — no parent; host wraps it |
+| **Shared delegate** | `presentation/delegates/<name>/<Name>Contract.kt` (co-located with the delegate, NOT in a `contracts/` folder) | Standalone `sealed interface <Name>Event` — no parent; host dispatches via a separate `handle<Name>Event()` function |
 
 Never standalone `<Name>UiState.kt` / `<Name>Event.kt` files anywhere. Never an `events/` subfolder.
 
@@ -83,9 +83,10 @@ sealed interface <Name>Event {
 }
 ```
 
-- `sealed interface` — **standalone**, no parent event. Each host ViewModel wraps it inside its own `<Screen>Event`: `data class ClientSelector(val inner: ClientSelectorEvent) : CheckoutEvent`.
+- `sealed interface` — **standalone**, no parent event. The event is NOT a subtype of any host's `<Screen>Event`.
+- Host ViewModels dispatch via a **separate function** per shared delegate — pattern: `fun handle<Name>Event(event: <Name>Event) { <name>Delegate.handleEvent(event) }`. This function sits alongside the main `handleEvent(<Screen>Event)`, not inside its `when`.
 - Contract lives **beside the delegate**, not in a sibling `contracts/` folder. This is the one place in the app where a contract does not live under `contracts/`.
-- See `rules/delegates.md` for the shared-delegate wiring pattern (host wraps event, host provides `init` callbacks).
+- See `rules/delegates.md` for the shared-delegate wiring pattern (separate dispatcher per shared delegate on the host, extra handler params on `<Screen>ScreenContent`).
 
 ## Value-typed only (all variants)
 
@@ -105,6 +106,7 @@ Value types allowed: `Boolean`, `Int`/`Long`/`Double`, `String`, `enum class` en
 - Standalone `<Screen>Event.kt` or `<Screen>UiState.kt` file → move into `contracts/<Screen>Contract.kt`
 - `events/` subfolder → contracts only; delete the `events/` folder
 - Shared delegate contract placed in a `contracts/` subfolder (`presentation/delegates/<name>/contracts/<Name>Contract.kt`) → co-locate with the delegate (`presentation/delegates/<name>/<Name>Contract.kt`)
-- Shared delegate event extending some `<Screen>Event` — locks the delegate to one screen → make it standalone; hosts wrap it inside their own event
+- Shared delegate event extending some `<Screen>Event` — locks the delegate to one screen → make it standalone; hosts dispatch to it through a separate `handle<Name>Event()` function, they do NOT wrap it as a subtype
+- Shared delegate event wrapped inside `<Screen>Event` on the host (e.g. `data class ClientSelector(val inner: ClientSelectorEvent) : CheckoutEvent`) → wrong wiring; expose `fun handleClientSelectorEvent(event: ClientSelectorEvent)` on the host VM and dispatch directly (see `rules/delegates.md`)
 - Feature delegate child event NOT extending the parent `<Screen>Event` → add `: <Screen>Event`; otherwise the host VM's exhaustive `when` won't route to it
 - `data class` shared with both the ViewModel and a Room entity → separate them; presentation state is not persistence

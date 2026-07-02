@@ -140,12 +140,13 @@ class <Screen>ViewModel @Inject constructor(
 }
 ```
 
-**Shared delegate — event does NOT extend `<Screen>Event`; host must forward explicitly:**
+**Shared delegate — event does NOT extend `<Screen>Event`; host exposes a separate dispatcher per shared delegate:**
 
 ```kotlin
 @HiltViewModel
 class CheckoutViewModel @Inject constructor(
     private val clientSelectorDelegate: ClientSelectorDelegate,
+    private val createClientDelegate: CreateClientDelegate,
 ) : ViewModel(), ViewModelNav by ViewModelNavImpl() {
 
     val clientSelectorState: StateFlow<ClientSelectorUiState> get() = clientSelectorDelegate.uiState
@@ -156,20 +157,44 @@ class CheckoutViewModel @Inject constructor(
             scope = viewModelScope,
             onClientReassigned = { refreshCart() },   // cross-cutting callback
         )
+        createClientDelegate.init(scope = viewModelScope, onClientCreated = { ... })
     }
 
-    // Shared delegate events do NOT extend <Screen>Event, so the host exposes
-    // its own event branch that forwards to the shared delegate:
+    // Main screen-event dispatcher — same as any VM
     fun handleEvent(event: CheckoutEvent) {
         when (event) {
-            is CheckoutEvent.ClientSelector -> clientSelectorDelegate.handleEvent(event.inner)
-            // ... other CheckoutEvent branches
+            // ... CheckoutEvent branches (may include feature-scoped delegate events, which ARE subtypes) ...
         }
+    }
+
+    // ONE separate dispatcher per shared delegate — pattern: fun handle<Name>Event(event: <Name>Event)
+    fun handleClientSelectorEvent(event: ClientSelectorEvent) {
+        // Host may intercept before forwarding — e.g. react to a delegate event that has cross-delegate consequences
+        if (event is ClientSelectorEvent.OnCreateClientClicked) createClientDelegate.show()
+        clientSelectorDelegate.handleEvent(event)
+    }
+
+    fun handleCreateClientEvent(event: CreateClientEvent) {
+        createClientDelegate.handleEvent(event)
     }
 }
 ```
 
-The host's `<Screen>Event` typically wraps the shared delegate's event: `data class ClientSelector(val inner: ClientSelectorEvent) : <Screen>Event`.
+Key points:
+- **Shared delegate events are NOT subtypes of `<Screen>Event`** — the whole reason the delegate is in `presentation/delegates/` is that it works for multiple hosts. Making its event a subtype would lock it to one screen.
+- **Naming: `fun handle<Name>Event(event: <Name>Event)`** — one dispatcher per shared delegate on the host VM. Each is a normal `fun`, not part of the `when`.
+- **The host may interpose logic before dispatching** — see the `OnCreateClientClicked` interception above. This is a legitimate use of the dispatcher (it's not a pure forwarder).
+- **The Screen composable passes each dispatcher as a separate handler param**:
+  ```kotlin
+  <Screen>ScreenContent(
+      uiState = uiState,
+      clientSelectorState = clientSelectorState,
+      handleEvent = viewModel::handleEvent,
+      handleClientSelectorEvent = viewModel::handleClientSelectorEvent,
+      handleCreateClientEvent = viewModel::handleCreateClientEvent,
+  )
+  ```
+  The stateless `<Screen>ScreenContent` accepts one `handle*Event: (<Name>Event) -> Unit` per shared delegate it renders.
 
 ## Common misuses
 
@@ -181,5 +206,8 @@ The host's `<Screen>Event` typically wraps the shared delegate's event: `data cl
 - Shared delegate placed under `presentation/ux/<feature>/delegates/` but used by more than one feature → move to `presentation/delegates/<name>/`
 - Feature-only delegate placed under `presentation/delegates/` → move under the feature that owns it (`presentation/ux/<feature>/delegates/`)
 - Shared delegate's contract stored in a sibling `contracts/` folder → co-locate `<Name>Contract.kt` with the delegate in `presentation/delegates/<name>/`
-- Shared delegate whose event extends some `<Screen>Event` → decouple; a shared delegate's event is standalone so multiple hosts can wrap it
+- Shared delegate whose event extends some `<Screen>Event` → decouple; a shared delegate's event is standalone so multiple hosts can dispatch to it independently
+- Host wraps a shared delegate event as a subtype of `<Screen>Event` (e.g. `data class ClientSelector(val inner: ClientSelectorEvent) : CheckoutEvent`) → wrong pattern; expose a separate `fun handleClientSelectorEvent(event: ClientSelectorEvent)` on the host VM instead
+- Shared delegate event dispatched through the main `handleEvent(<Screen>Event)` `when` branch → move to a dedicated `handle<Name>Event(event: <Name>Event)` function on the host
+- `<Screen>ScreenContent` receiving a shared delegate event through the single `handleEvent` lambda → add a separate `handle<Name>Event: (<Name>Event) -> Unit` parameter for each shared delegate rendered on the screen
 - Shared delegate constructor taking a callback lambda → put callbacks in `init(...)`, not the constructor; constructor is for Hilt-injected dependencies only
