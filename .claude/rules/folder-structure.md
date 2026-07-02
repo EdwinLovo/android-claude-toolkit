@@ -29,12 +29,16 @@ Single module (`app`) with three top-level packages under `<PKG_ROOT>`.
 │   └── repository/<feature>/     ← implementations (extend BaseRepository)
 │
 └── presentation/
+    ├── delegates/<name>/         ← OPTIONAL. Shared @ViewModelScoped delegates injected by multiple hosts
+    │                                (e.g. clientselector/, createclient/). Contract co-located with delegate.
+    │                                See rules/delegates.md.
     ├── ui/
     │   ├── navigation/           ← NavigationRoute, ViewModelNav, AppNavHost
     │   ├── components/<category>/← shared Compose components (buttons/, dialogs/, ...)
     │   └── theme/                ← Material3 theme, colors, typography, dimens
     ├── utils/                    ← ErrorEventBus, UiText, ext/, <ICONS>.kt
     └── ux/<feature>/             ← one folder per screen (see rules/screens.md)
+                                    Feature-scoped delegates live inside each ux/<feature>/delegates/.
 ```
 
 ## Rules of thumb
@@ -51,3 +55,5 @@ Single module (`app`) with three top-level packages under `<PKG_ROOT>`.
 - Mapper that only touches domain models placed in `data/mappers/` → move to `domain/model/<area>/<Name>Mappers.kt`
 - Feature-only component placed in `presentation/ui/components/` → move to `presentation/ux/<feature>/components/`
 - Reusable component placed in `ux/<feature>/components/` → move to `presentation/ui/components/<category>/`
+- Delegate used by multiple hosts placed in a single feature's `ux/<feature>/delegates/` → move to top-level `presentation/delegates/<name>/`
+- Feature-only delegate placed in top-level `presentation/delegates/` → move under its host feature's `ux/<feature>/delegates/`
