@@ -50,15 +50,9 @@ class ExampleViewModel @Inject constructor(...) : ViewModel() {
 | `SavedStateHandle` key | The class that owns the handle (usually the VM's companion) |
 | DI-scoped constants (`@Named` string) | `data/di/DiConstants.kt` |
 
-## Frequently-used shared constants
+## Before declaring a new constant
 
-Instead of redeclaring in every VM, project code has:
-
-- `ABSOLUTE_WEIGHT = 1f` — for `Modifier.weight(ABSOLUTE_WEIGHT)` in Rows/Columns
-- `EMPTY_STRING = ""`
-- Any timeout, debounce, or retry count that appears in more than one place
-
-These live in `presentation/utils/Constants.kt` (or your project's equivalent).
+Check `presentation/utils/Constants.kt` first. If a timeout, debounce, retry count, or other value with the same meaning already lives there, reuse it — do not redeclare with a different name in your companion object. Promote a companion constant to `presentation/utils/Constants.kt` the moment a second ViewModel needs the same value.
 
 ## Common violations
 

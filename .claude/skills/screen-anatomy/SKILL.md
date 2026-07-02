@@ -77,11 +77,14 @@ data class <Screen>UiState(
     val <fieldName>: <Type> = <default>,
 )
 
-interface <Screen>Event
+sealed interface <Screen>Event {
+    data object <EventName> : <Screen>Event
+    data class <EventName>(val <paramName>: <ParamType>) : <Screen>Event
+}
 ```
 
-- Plain `interface` (not `sealed`) when delegate child events extend it
-- **`sealed interface`** when the screen has no delegates and all events belong to the screen
+- **`<Screen>Event` is always `sealed interface`**, whether or not the screen has delegates. Kotlin's exhaustive `when` catches missing branches.
+- Delegate child events extend the sealed parent — permitted because sealed hierarchies are closed at the module boundary (see File 2b).
 - `<Screen>UiState` has value-typed fields only — no `StateFlow`, no `Flow<PagingData<T>>`
 - Every field has a default — empty state is initial state
 

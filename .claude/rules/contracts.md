@@ -20,19 +20,16 @@ data class <Screen>UiState(
     // one field per piece of screen state
 )
 
-interface <Screen>Event
+sealed interface <Screen>Event {
+    data object OnPopBackStack : <Screen>Event
+    data class OnItemClicked(val id: String) : <Screen>Event
+}
 ```
 
 - `<Screen>UiState` is a **plain `data class`** with **value-typed fields** and **default values** for every field.
-- `<Screen>Event` is a **plain `interface`** (not sealed) so child events in delegate contracts can extend it.
-  - **If no delegates exist and every event belongs to the screen**, use `sealed interface` instead — Kotlin's exhaustive `when` will catch missing branches.
-- Events are `data object` (no params) or `data class` (with params):
-  ```kotlin
-  sealed interface <Screen>Event {
-      data object OnPopBackStack : <Screen>Event
-      data class OnItemClicked(val id: String) : <Screen>Event
-  }
-  ```
+- `<Screen>Event` is **always `sealed interface`**, whether or not the screen has delegates. Kotlin's exhaustive `when` catches missing branches in `handleEvent`.
+- Child events in delegate contracts extend the sealed parent — Kotlin permits it because sealed hierarchies are closed at the module boundary, not the file boundary (see `<Child>Contract.kt` below).
+- Events are `data object` (no params) or `data class` (with params).
 
 ## Delegate contract — `contracts/<Child>Contract.kt`
 
