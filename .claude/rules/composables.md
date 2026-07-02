@@ -32,19 +32,33 @@ Categories under `presentation/ui/components/` you may see: `buttons/`, `dialogs
 
 ## Parameter conventions
 
+Follows the [Android Compose API guidelines](https://developer.android.com/develop/ui/compose/api-guidelines#modifier-parameter). Parameter order:
+
+1. **Required params** (no defaults) first
+2. **`modifier: Modifier = Modifier`** — the **first parameter with a default value**, positioned between required params and other defaulted params
+3. **Other optional (defaulted) params** after modifier
+4. **Trailing content lambda** (`content: @Composable () -> Unit`) last, if any
+
 ```kotlin
 @Composable
 internal fun ProductRow(
+    // 1. Required params first (no defaults)
     product: Product,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,   // always last non-lambda arg, always defaults to Modifier
+    // 2. Modifier — FIRST parameter with a default value
+    modifier: Modifier = Modifier,
+    // 3. Other optional params after modifier
+    isSelected: Boolean = false,
     onLongClick: (() -> Unit)? = null,
+    // 4. Trailing content lambda last (if any)
+    trailingIcon: @Composable (() -> Unit)? = null,
 ) { ... }
 ```
 
-- **`modifier: Modifier = Modifier`** is always the last non-lambda parameter, and defaults to `Modifier`
-- **Trailing lambdas** (`content: @Composable () -> Unit`) go after `modifier`
-- **State is hoisted** — pass in values, pass out events. Do not read `viewModel` inside `internal` components.
+Hard rules:
+- **`modifier` defaults to `Modifier`**, never to `null` and never to a pre-wrapped modifier chain
+- **Callers pass `modifier` positionally as the first optional arg** — the naming and position are the API contract
+- **State is hoisted** — components consume props, do not read `hiltViewModel()` inside components
 
 ## File layout
 
@@ -54,14 +68,11 @@ package <PKG_ROOT>.presentation.ui.components.rows
 
 // 2. imports
 
-// 3. the component (one function only)
+// 3. the component — one @Composable function only
 @Composable
 internal fun ProductRow(...) { ... }
 
-// 4. small private helpers only if they cannot be reused elsewhere (non-composable)
-private fun formatPrice(cents: Int): String = ...
-
-// 5. preview at the bottom
+// 4. preview at the bottom
 @<PREVIEW>
 @Composable
 private fun ProductRowPreview() {
@@ -71,12 +82,21 @@ private fun ProductRowPreview() {
 }
 ```
 
-Non-composable `private fun` helpers are allowed but should be small. If they get more than ~10 lines or you feel the urge to test them, move them to `presentation/ux/<feature>/utils/` (feature-scoped) or `presentation/utils/ext/` (shared).
+**Non-composable helpers do not live in component files.** Extract them to:
+
+- `presentation/utils/ext/<Type>Ext.kt` — extension with a natural receiver, shared across features
+- `presentation/ux/<feature>/utils/<Type>Ext.kt` — extension with a natural receiver, used only inside one feature
+- `presentation/ux/<feature>/utils/<Purpose>.kt` — receiver-less top-level function (rare; prefer an extension whenever a receiver exists)
+
+See `.claude/rules/extensions.md` and `.claude/rules/utils.md` for placement details.
 
 ## Common violations
 
 - Two `internal @Composable` functions in the same file → split into two files
 - `private @Composable` helper alongside the main component → extract to `components/<Name>.kt`, mark `internal`, add its own preview
+- `private fun` non-composable helper inside a component file → extract as an extension in `utils/ext/` or a receiver-less function in `<feature>/utils/` (see `rules/extensions.md`, `rules/utils.md`)
+- `modifier` placed as the last parameter or after other defaulted params → move to first-with-default position
+- `modifier: Modifier? = null` → change default to `Modifier`
 - Reusable component in `ux/<feature>/components/` → move to `presentation/ui/components/<category>/`
 - Feature-specific component in `presentation/ui/components/` when only one screen uses it → move to `ux/<feature>/components/`
 - Missing preview → add one at the bottom

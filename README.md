@@ -32,6 +32,8 @@ android-claude-toolkit/
     │   ├── string-resources.md
     │   ├── icons.md
     │   ├── constants-in-viewmodels.md
+    │   ├── extensions.md
+    │   ├── utils.md
     │   ├── logging.md
     │   └── testing.md
     ├── skills/                            # On-demand task workflows
