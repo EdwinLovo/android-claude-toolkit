@@ -167,7 +167,7 @@ class AuthRepositoryImpl @Inject constructor(
 }
 ```
 
-- `safeApolloCallSuspend(apolloCall, mapper)` → executes, maps on success, returns `ApiResult.Error` on exception or GraphQL error
+- `safeApolloCallSuspend(apolloCall, mapper)` → executes, maps on success, returns `ApiError` on exception or GraphQL error
 - `safeApolloCall(apolloCall, mapper)` → reactive `Flow<ApiResult<T>>`
 
 ---
@@ -300,7 +300,7 @@ class <Resource>RepositoryImpl @Inject constructor(
 }
 ```
 
-`BaseRepository.safeCallSuspend` for Retrofit takes a `suspend () -> Response<T>` lambda, checks `.isSuccessful`, translates HTTP errors into `ApiResult.Error(code, message)`, and applies the mapper on success.
+`BaseRepository.safeCallSuspend` for Retrofit takes a `suspend () -> Response<T>` lambda, checks `.isSuccessful`, translates HTTP errors into `ApiError(code, message)`, and applies the mapper on success.
 
 **Multiple auth contexts (Retrofit §3 replacement):** handle at the Retrofit builder — one `@Named("public") Retrofit`, one `@Named("user") Retrofit`, each producing its own service interface via `retrofit.create(...)`. `ApiModule` provides both.
 

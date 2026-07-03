@@ -102,7 +102,7 @@ fun <T> ObserveAsEvents(
 
 ## Flow
 
-1. **Repository** returns `ApiResult.Error(code, message)` — never throws.
+1. **Repository** returns `ApiError(code, message)` — never throws.
 2. **ViewModel / delegate** chains `.onError { }` on the result and sends into the bus:
 
     ```kotlin

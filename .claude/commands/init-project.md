@@ -1,3 +1,7 @@
+---
+description: Interactive first-run scaffolder — asks about networking, paging, and naming, then writes the folder tree and every primitive the rules assume exists
+---
+
 # /init-project
 
 **Run once at project start.** Interactive first-run scaffolder: asks a handful of questions (networking library, paging, project + package names), then produces the presentation/data/domain folder tree, the utility files, and every primitive the rules assume exists.
@@ -10,7 +14,7 @@ Idempotent-friendly caveat: this command **overwrites** files with the same path
 - **Theme layer** — via the `theme-primitives` skill (7 files under `presentation/ui/theme/` + `colors/`)
 - **Navigation layer** — via the `navigation-primitives` skill (3 files under `presentation/ui/navigation/`)
 - **Repository layer** — via the `repository-primitives` skill (`ApiResult.kt`, `BaseRepository.kt` for the chosen networking library, `HttpConstants.kt` if Apollo, `BasePagingSource.kt` if paging)
-- **Utility files + shared components** — via the `misc-primitives` skill: `ErrorEventBus.kt`, `UiText.kt`, `ObserveAsEvents.kt`, `OnLifecycleResumed.kt`, `OnLifecycleEvent.kt`, `Constants.kt`, `StateFlowExt.kt`, the `<PREVIEW>` annotations + `<PROJECT_NAME>PreviewContainer`, plus `<SCAFFOLD>.kt`, `<DIALOG>.kt`, and `<ICONS>.kt` stubs
+- **Utility files + shared components** — via the `misc-primitives` skill: `ErrorEventBus.kt`, `UiText.kt`, `ObserveAsEvents.kt`, `OnLifecycleResumed.kt`, `OnLifecycleEvent.kt`, `Constants.kt`, `StateFlowExt.kt`, the `<PREVIEW>` annotations + `<PROJECT_NAME>PreviewContainer`, plus `<SCAFFOLD>.kt`, `<DIALOG>.kt`, `<PROJECT_NAME>AlertDialog.kt`, `<PROJECT_NAME>ErrorAlertDialog.kt`, and `<ICONS>.kt` stubs
 - **App-shell stubs** — `<PROJECT_NAME>Application.kt` (with `@HiltAndroidApp`), `MainActivity.kt` (with `@AndroidEntryPoint` and `setContent { <THEME> { ... } }`), `AppNavHost.kt`, `MainScreen.kt`, `MainViewModel.kt`
 - **DI module stubs** — `ApiModule.kt`, `RepositoryModule.kt`, plus `DataSourceModule.kt` if Apollo
 

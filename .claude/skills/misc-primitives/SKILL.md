@@ -1,6 +1,6 @@
 ---
 name: misc-primitives
-description: First-time setup for the small cross-cutting utility files — ErrorEventBus, UiText, ObserveAsEvents, OnLifecycleResumed, OnLifecycleEvent, Constants, StateFlowExt, the <PREVIEW> annotations + PreviewContainer, and the <ICONS> / <SCAFFOLD> / <DIALOG> component stubs. Invoke when scaffolding these in a new project, or when a rule references any of them and the file doesn't exist yet.
+description: First-time setup for the small cross-cutting utility files — ErrorEventBus, UiText, ObserveAsEvents, OnLifecycleResumed, OnLifecycleEvent, Constants, StateFlowExt, the <PREVIEW> annotations + PreviewContainer, and the <ICONS> / <SCAFFOLD> / <DIALOG> / <PROJECT_NAME>AlertDialog component stubs. Invoke when scaffolding these in a new project, or when a rule references any of them and the file doesn't exist yet.
 allowed-tools:
   - Read
   - Write
@@ -18,7 +18,7 @@ For the conventions that use these types:
 - `OnLifecycleResumed`, `OnLifecycleEvent` → `rules/lifecycle.md`
 - `<PREVIEW>` annotations + `<PROJECT_NAME>PreviewContainer` → `rules/previews.md`
 - `<SCAFFOLD>` → `rules/screens.md` (single-shared-scaffold rule)
-- `<DIALOG>` → `rules/dialogs.md`
+- `<DIALOG>`, `<PROJECT_NAME>AlertDialog`, `<PROJECT_NAME>ErrorAlertDialog` → `rules/dialogs.md`
 - `<ICONS>` → `rules/icons.md`
 - `Constants` (`ABSOLUTE_WEIGHT`, `EMPTY_STRING`, …) → `rules/constants-in-viewmodels.md`
 - `StateFlowExt.reduce` → `rules/viewmodels.md`
@@ -371,6 +371,112 @@ fun <DIALOG>(
 
 ---
 
+## File 12 — `presentation/ui/components/dialogs/<PROJECT_NAME>AlertDialog.kt`
+
+The standard confirmation dialog — a title, a message, a primary button, and an optional ghost button, stacked at the compact width. Confirmation and error dialogs use this instead of building a custom body. See `rules/dialogs.md`.
+
+The `Button` / `TextButton` pair is a starting point — swap in your project's styled button component once one exists.
+
+```kotlin
+package <PKG_ROOT>.presentation.ui.components.dialogs
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import <PKG_ROOT>.presentation.ui.theme.<THEME>
+
+@Composable
+fun <PROJECT_NAME>AlertDialog(
+    title: String,
+    message: String,
+    primaryButtonText: String,
+    onPrimaryClick: () -> Unit,
+    onDismiss: () -> Unit,
+    ghostButtonText: String? = null,
+    onGhostClick: (() -> Unit)? = null,
+) {
+    <DIALOG>(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier.padding(<THEME>.padding.xl),
+            verticalArrangement = Arrangement.spacedBy(<THEME>.spacing.lg),
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                color = <THEME>.colors.textDefault,
+            )
+
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = <THEME>.colors.textMuted,
+            )
+
+            Column(verticalArrangement = Arrangement.spacedBy(<THEME>.spacing.sm)) {
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = <THEME>.colors.backgroundPrimaryDefault),
+                    onClick = onPrimaryClick,
+                ) {
+                    Text(text = primaryButtonText)
+                }
+
+                if (ghostButtonText != null) {
+                    TextButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = onGhostClick ?: onDismiss,
+                    ) {
+                        Text(text = ghostButtonText, color = <THEME>.colors.textPrimary)
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+---
+
+## File 13 — `presentation/ui/components/dialogs/<PROJECT_NAME>ErrorAlertDialog.kt`
+
+The error variant rendered by `MainScreen` when the `ErrorEventBus` emits — takes a `UiText` directly. See `rules/error-handling.md`.
+
+Requires two entries in `strings.xml`: `<string name="error_alert_title">Something went wrong</string>` and `<string name="error_alert_dismiss">OK</string>`.
+
+```kotlin
+package <PKG_ROOT>.presentation.ui.components.dialogs
+
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import <PKG_ROOT>.R
+import <PKG_ROOT>.presentation.utils.UiText
+import <PKG_ROOT>.presentation.utils.asString
+
+@Composable
+fun <PROJECT_NAME>ErrorAlertDialog(
+    message: UiText,
+    onDismiss: () -> Unit,
+) {
+    <PROJECT_NAME>AlertDialog(
+        title = stringResource(R.string.error_alert_title),
+        message = message.asString(),
+        primaryButtonText = stringResource(R.string.error_alert_dismiss),
+        onPrimaryClick = onDismiss,
+        onDismiss = onDismiss,
+    )
+}
+```
+
+---
+
 ## Verification after copying
 
 Once these files exist:
@@ -386,5 +492,7 @@ Once these files exist:
 - `presentation/utils/<ICONS>.kt`
 - `presentation/ui/components/scaffold/<SCAFFOLD>.kt`
 - `presentation/ui/components/dialogs/<DIALOG>.kt`
+- `presentation/ui/components/dialogs/<PROJECT_NAME>AlertDialog.kt`
+- `presentation/ui/components/dialogs/<PROJECT_NAME>ErrorAlertDialog.kt`
 
 Every rule that references `ErrorEventBus.send(...)`, `uiText.asString()`, `OnLifecycleResumed { }`, `<PREVIEW>Screen`, `<SCAFFOLD> { }`, `<DIALOG>`, `<ICONS>.<Name>`, `ABSOLUTE_WEIGHT` / `EMPTY_STRING`, or `uiState.reduce { copy(...) }` will now resolve. See the corresponding rules linked at the top of this skill for usage patterns.

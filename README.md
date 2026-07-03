@@ -75,6 +75,10 @@ cp /path/to/android-claude-toolkit/CLAUDE.md .
 
 **Manual substitution alternative** (if you'd rather not use the interactive command):
 
+```bash
+# From your target project root
+cp -R /path/to/android-claude-toolkit/.claude .
+cp /path/to/android-claude-toolkit/CLAUDE.md .
 # Then substitute placeholders (see table below)
 ```
 

@@ -87,7 +87,7 @@ class FakeExampleRepository(
     var errorOnLoad: Boolean = false,
 ) : ExampleRepository {
     override suspend fun getItems(): ApiResult<List<Item>> =
-        if (errorOnLoad) ApiResult.Error(0, "boom") else ApiResult.Success(items)
+        if (errorOnLoad) ApiError(0, "boom") else ApiSuccess(items)
 }
 ```
 
@@ -103,7 +103,7 @@ fun signInEmployeeReturnsEmployeeAuthOnSuccess() = runTest {
 
     val result = repository.signInEmployee("1234")
 
-    assertIs<ApiResult.Success<EmployeeAuth>>(result)
+    assertIs<ApiSuccess<EmployeeAuth>>(result)
 }
 ```
 
@@ -130,7 +130,7 @@ fun toDeviceAuthMapsAllFields() {
 
 - **No mocking libraries** unless there's genuinely no way to fake — fakes first, mocks last
 - **`runTest { }` for coroutine tests** — not `runBlocking`
-- **`assertIs<ApiResult.Success<T>>(result)`** is preferred over `result is ApiResult.Success<T> && ...` — the assertion smart-casts and the failure message shows the wrong variant
+- **`assertIs<ApiSuccess<T>>(result)`** is preferred over `result is ApiSuccess<T> && ...` — the assertion smart-casts and the failure message shows the wrong variant
 - **One assertion cluster per test** — testing multiple transitions in one `uiState.test { }` block is fine; asserting five unrelated things is not
 - **Fakes go in `src/test/`**, never in `src/main/` — don't ship test doubles in production
 - **Compose UI tests live in `src/androidTest/`** — use `createComposeRule()` and `SemanticsNodeInteraction` matchers

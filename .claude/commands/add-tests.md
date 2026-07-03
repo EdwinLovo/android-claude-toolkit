@@ -74,7 +74,7 @@ class ExampleViewModelTest {
     }
 
     @Test
-    fun handleEvent_onLoad_setsLoadingThenPopulatesState() = runTest {
+    fun handleEventOnLoadSetsLoadingThenPopulatesState() = runTest {
         viewModel.uiState.test {
             val initial = awaitItem()
             assertFalse(initial.isLoading)
@@ -95,7 +95,7 @@ class ExampleViewModelTest {
 **Mapper test:**
 ```kotlin
 @Test
-fun toDeviceAuth_mapsAllFields() {
+fun toDeviceAuthMapsAllFields() {
     val data = ValidateDeviceCodeMutation.Data(/* ... */)
     val result = data.toDeviceAuth()
     assertEquals("expected-token", result.token)
@@ -105,13 +105,13 @@ fun toDeviceAuth_mapsAllFields() {
 **Repository test:**
 ```kotlin
 @Test
-fun signInEmployee_success_returnsEmployeeAuth() = runTest {
+fun signInEmployeeReturnsEmployeeAuthOnSuccess() = runTest {
     val fakeDataSource = FakeDeviceRemoteDataSource(response = successResponse)
     val repository = AuthRepositoryImpl(fakeDataSource)
 
     val result = repository.signInEmployee("1234")
 
-    assertIs<ApiResult.Success<EmployeeAuth>>(result)
+    assertIs<ApiSuccess<EmployeeAuth>>(result)
 }
 ```
 

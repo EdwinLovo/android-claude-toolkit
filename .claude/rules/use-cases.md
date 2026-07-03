@@ -60,7 +60,7 @@ class GetCatalogProductsUseCase @Inject constructor(
 - **Single `operator fun invoke`** — the whole point is a callable object
 - **No `@Singleton`** — use cases are stateless and cheap to construct
 - **No Compose, no Android, no framework imports** — `domain/` is platform-neutral
-- **No error handling that hides `ApiResult.Error`** — pass results through; the VM/UI decides how to display errors
+- **No error handling that hides `ApiError`** — pass results through; the VM/UI decides how to display errors
 - **Named `<Verb><Resource>UseCase`** — e.g. `GetProductsUseCase`, `SubmitOrderUseCase`, `RefreshCatalogUseCase`. `<Verb>` is a real verb, not a noun.
 
 ## Common violations
