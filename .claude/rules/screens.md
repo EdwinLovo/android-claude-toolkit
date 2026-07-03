@@ -7,6 +7,8 @@ paths:
 
 # Screen composables
 
+Every screen renders through the app's single `<SCAFFOLD>` composable — one component, shared by every feature. That's how background color, insets, and any global chrome stay consistent across screens. Screens pass their own top/bottom bars as slot arguments; they never fork a per-feature scaffold variant.
+
 Every screen file has **exactly two composables**: a public entry that collects state and delegates to a private stateless content composable.
 
 ## Template — no delegates
@@ -34,7 +36,10 @@ private fun <Screen>ScreenContent(
     uiState: <Screen>UiState,
     handleEvent: (<Screen>Event) -> Unit,
 ) {
-    // UI here — never reads viewModel, never calls hiltViewModel()
+    <SCAFFOLD> { paddingValues ->
+        // UI here — apply paddingValues to the top-level container.
+        // Never reads viewModel, never calls hiltViewModel().
+    }
 }
 ```
 
@@ -59,6 +64,17 @@ fun <Screen>Screen(
 
     HandleNavigation(viewModel, navController)
 }
+
+@Composable
+private fun <Screen>ScreenContent(
+    uiState: <Screen>UiState,
+    <child>State: <Child>UiState,
+    handleEvent: (<Screen>Event) -> Unit,
+) {
+    <SCAFFOLD> { paddingValues ->
+        // UI here — reads uiState + <child>State, dispatches via handleEvent.
+    }
+}
 ```
 
 Child event types are **not imported in the Screen** — only the parent `<Screen>Event`.
@@ -74,6 +90,9 @@ val items = viewModel.items.collectAsLazyPagingItems()
 
 ## Hard rules
 
+- **One `<SCAFFOLD>` for the whole app.** A single `<SCAFFOLD>` composable at `<PKG_ROOT>/presentation/ui/components/scaffold/<SCAFFOLD>.kt` is the *only* scaffold in the codebase. Every feature screen calls it directly. Screen-specific chrome (top bar, bottom bar) is passed in as slot arguments — never wrapped in a new `<Feature>Scaffold` composable.
+- **`<Screen>ScreenContent` wraps its UI in `<SCAFFOLD>`** — that's how the app's background color, top/bottom bars, and inset paddings are wired. Apply the `paddingValues` from the `content` lambda to the top-level container.
+- **App-shell exception**: the composable that hosts `AppNavHost` (typically `MainScreen`) does **not** use `<SCAFFOLD>` — it operates below the scaffold level, and each hosted screen brings its own.
 - **`collectAsStateWithLifecycle()`, never `collectAsState()`** — lifecycle-aware collection stops when the screen is stopped
 - **`<Screen>ScreenContent` is `private`** — the only `private @Composable` allowed in a component file besides `*Preview()` functions (see `rules/composables.md`)
 - **`<Screen>ScreenContent` takes only value-typed `uiState` and lambdas** — never the ViewModel, never `hiltViewModel()`
@@ -104,3 +123,6 @@ private fun <Screen>ContentPreview(
 - Multiple `private @Composable` helpers in the file → extract each to `components/<Name>.kt` as `internal`
 - Missing preview → add `@<PREVIEW>Screen` at bottom
 - `HandleNavigation` inside `<Screen>ScreenContent` → move to the entry composable
+- `<Screen>ScreenContent` body starts with `Column {}` / `Box {}` at the root → wrap in `<SCAFFOLD> { paddingValues -> ... }`; background color and window insets go missing otherwise
+- `Scaffold { }` from `androidx.compose.material3` imported and used inline in a screen → use `<SCAFFOLD>`; the file must not import Material3's `Scaffold`
+- Feature-specific scaffold wrapper (`<Feature>Scaffold`) declared in `presentation/ux/<feature>/components/` → delete it; the screen calls `<SCAFFOLD>` directly and passes its top/bottom bar composables as slot arguments
