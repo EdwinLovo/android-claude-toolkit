@@ -12,6 +12,8 @@ paths:
 
 Every `@Composable` function that renders displayable UI must have a Compose preview at the bottom of its file. Reviewers should see the component in the IDE without running the app.
 
+**Setting up the preview annotations in a new project:** invoke the `misc-primitives` skill (`.claude/skills/misc-primitives/SKILL.md`). It ships `<PREVIEW>.kt` under `presentation/utils/` with the `@<PREVIEW>` component + `@<PREVIEW>Screen` full-screen annotations and the `<PROJECT_NAME>PreviewContainer` composable.
+
 **Scope of this rule:**
 - **Applies to** files under `presentation/ui/components/`, `presentation/ux/<feature>/components/`, and screen files (`<Screen>Screen.kt`)
 - **Exempt** utility composables in `presentation/utils/` — extension composables (`UiText.asString()`), effect helpers (`OnLifecycleResumed`, `ObserveAsEvents`), and preview infrastructure itself (`<PROJECT_NAME>PreviewContainer`) don't render UI, so they don't need previews

@@ -42,8 +42,11 @@ android-claude-toolkit/
     │   ├── navigation-primitives/SKILL.md # First-time setup: NavigationRoute, NavigationAction, ViewModelNav
     │   ├── repository-primitives/SKILL.md # First-time setup: BaseRepository, ApiResult, BasePagingSource
     │   ├── theme-primitives/SKILL.md      # First-time setup: Theme composable + accessor, Dimens, PrimitiveColors, ExtendedColors, Material schemes
+    │   ├── misc-primitives/SKILL.md       # First-time setup: ErrorEventBus, UiText, StateFlowExt, preview annotations, lifecycle helpers, <SCAFFOLD>/<DIALOG>/<ICONS>
+    │   ├── project-scaffold/SKILL.md      # First-run orchestrator (invoked by /init-project)
     │   └── audit-branch/SKILL.md          # context: fork — runs the audit in an isolated sub-agent
     └── commands/                          # Slash commands
+        ├── init-project.md                # Interactive first-run scaffolder
         ├── new-screen.md
         ├── new-data-feature.md
         ├── audit-branch.md
@@ -61,10 +64,16 @@ Layout follows the Anthropic Claude Code guidelines:
 
 ## Install into an Android project
 
+**Recommended:** copy the toolkit in, then run `/init-project` inside Claude Code. The interactive scaffolder asks about networking library (Retrofit / Apollo), paging, and project naming, then writes the folder tree + all primitives (theme, navigation, repository, utilities, DI stubs, Application/MainActivity) with placeholders substituted. It leaves `build.gradle.kts` untouched and prints a next-steps checklist.
+
 ```bash
 # From your target project root
 cp -R /path/to/android-claude-toolkit/.claude .
 cp /path/to/android-claude-toolkit/CLAUDE.md .
+# then, inside Claude Code, run:  /init-project
+```
+
+**Manual substitution alternative** (if you'd rather not use the interactive command):
 
 # Then substitute placeholders (see table below)
 ```

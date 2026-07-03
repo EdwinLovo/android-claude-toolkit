@@ -9,6 +9,8 @@ paths:
 
 Screens sometimes need to react to lifecycle events — refresh data when the user returns, pause a camera preview, stop a timer on backgrounding. **Almost always** this is one event → one action, which means a small named `@Composable` helper in `presentation/utils/`. Don't inline `DisposableEffect + LifecycleEventObserver` in every screen.
 
+**Setting up the lifecycle helpers in a new project:** invoke the `misc-primitives` skill (`.claude/skills/misc-primitives/SKILL.md`). It ships `OnLifecycleResumed.kt` and `OnLifecycleEvent.kt` under `presentation/utils/`.
+
 ## Reusable helpers
 
 Two helpers cover ~99% of cases:

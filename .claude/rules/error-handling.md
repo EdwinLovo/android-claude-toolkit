@@ -11,6 +11,8 @@ paths:
 
 Errors from the data layer flow through a single global `ErrorEventBus`. `MainScreen` (or the root scaffold) collects the bus once and renders a single error dialog. Individual screens never re-implement error-dialog plumbing.
 
+**Setting up the error-handling files in a new project:** invoke the `misc-primitives` skill (`.claude/skills/misc-primitives/SKILL.md`). It ships `ErrorEventBus.kt`, `UiText.kt`, and `ObserveAsEvents.kt` under `presentation/utils/`.
+
 ## Pieces
 
 - **`presentation/utils/ErrorEventBus.kt`** — a singleton `object` backed by a `Channel<UiText>(capacity = Channel.BUFFERED)`, exposing `events: Flow<UiText>` via `receiveAsFlow()` and a `suspend fun send(error: UiText)`. Includes a `fun drain()` for test cleanup.
