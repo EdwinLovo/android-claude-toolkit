@@ -1,6 +1,6 @@
 ---
 name: testing
-description: ViewModel/repository/mapper/use-case unit tests — Turbine + MainDispatcherRule + fakes; subject_condition_expected naming
+description: ViewModel/repository/mapper/use-case unit tests — Turbine + MainDispatcherRule + fakes; camelCase test-name naming
 paths:
   - "**/src/test/**/*.kt"
   - "**/src/androidTest/**/*.kt"
@@ -12,13 +12,17 @@ Unit tests live in `app/src/test/`. Instrumented (Compose UI, Room-on-device) te
 
 ## Naming
 
-`<subjectOrMethod>_<condition>_<expectedBehavior>`
+Test names are **camelCase** — the same convention as any other Kotlin function. No underscores, no backticks-with-spaces.
+
+Structure: `<subjectOrMethod><Condition><ExpectedBehavior>` — describes the subject, the input condition, and what should happen, in that order.
 
 Examples:
-- `handleEvent_onRefresh_setsLoadingThenPopulatesItems`
-- `signInEmployee_success_returnsEmployeeAuth`
-- `toDeviceAuth_mapsAllFields`
-- `getProducts_emptyQuery_debouncesZero`
+- `handleEventOnRefreshSetsLoadingThenPopulatesItems`
+- `signInEmployeeReturnsEmployeeAuthOnSuccess`
+- `toDeviceAuthMapsAllFields`
+- `getProductsDebouncesZeroOnEmptyQuery`
+
+If a name feels too long to read, the test is probably doing too much — split it.
 
 ## What to test in each layer
 
@@ -48,7 +52,7 @@ class ExampleViewModelTest {
     }
 
     @Test
-    fun handleEvent_onLoad_setsLoadingThenPopulatesState() = runTest {
+    fun handleEventOnLoadSetsLoadingThenPopulatesState() = runTest {
         viewModel.uiState.test {
             val initial = awaitItem()
             assertFalse(initial.isLoading)
@@ -93,7 +97,7 @@ Fakes live next to the interface they fake, under `app/src/test/java/<PKG_ROOT>/
 
 ```kotlin
 @Test
-fun signInEmployee_success_returnsEmployeeAuth() = runTest {
+fun signInEmployeeReturnsEmployeeAuthOnSuccess() = runTest {
     val fakeDataSource = FakeDeviceRemoteDataSource(response = successResponse)
     val repository = AuthRepositoryImpl(fakeDataSource)
 
@@ -107,7 +111,7 @@ fun signInEmployee_success_returnsEmployeeAuth() = runTest {
 
 ```kotlin
 @Test
-fun toDeviceAuth_mapsAllFields() {
+fun toDeviceAuthMapsAllFields() {
     val data = ValidateDeviceCodeMutation.Data(
         validateDeviceCode = ValidateDeviceCodeMutation.ValidateDeviceCode(
             accessToken = "abc",
@@ -133,7 +137,7 @@ fun toDeviceAuth_mapsAllFields() {
 
 ## Common violations
 
-- Test named `test1`, `foo`, `worksCorrectly` → rename `<subject>_<condition>_<expected>`
+- Test named `test1`, `foo`, `worksCorrectly`, `snake_case_name`, or `` `backticks with spaces` `` → rename in camelCase: `<subjectOrMethod><Condition><ExpectedBehavior>`
 - `Mockito.when(repo.get()).thenReturn(...)` → write a fake instead
 - Test that assumes execution order across ViewModels (`shared state`) → each test gets a fresh `viewModel` in `@Before`
 - Missing `MainDispatcherRule` → `Dispatchers.Main.immediate` isn't set in unit tests, coroutines from `viewModelScope` never run
