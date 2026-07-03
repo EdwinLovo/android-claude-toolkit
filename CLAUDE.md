@@ -212,6 +212,7 @@ ux/<feature>/utils/         ← feature-scoped enums and extension functions
 |---|---|
 | `.claude/skills/screen-anatomy/` | Templates for creating a new MVVM screen (Route, Contract, ViewModel, Screen, Preview, delegates) |
 | `.claude/skills/data-feature/` | Templates for a networking-backed data feature (query file, model, mapper, data source, repository, DI) |
+| `.claude/skills/navigation-primitives/` | First-time setup for the navigation layer — reference files for `NavigationRoute`, `NavigationAction`, `ViewModelNav` (interface + impl + `HandleNavigation` + `ObserveBooleanResult`) |
 | `.claude/skills/audit-branch/` | Audit workflow — invoked by `/audit-branch`; runs in a **forked context** (`context: fork`) so findings aren't biased by the current conversation |
 | `.claude/rules/` | Path-scoped conventions auto-loaded when editing matching files (ViewModels, contracts, delegates, screens, previews, mappers, DI, ...) |
 | `/new-screen` | Scaffold a new screen (Route, Contract, ViewModel, Screen + AppNavHost registration) |
