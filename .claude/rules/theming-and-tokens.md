@@ -9,6 +9,8 @@ paths:
 
 Source every design value from `<THEME>`. `MaterialTheme` is banned in UI code with a single exception.
 
+**Setting up the theme in a new project:** invoke the `theme-primitives` skill (`.claude/skills/theme-primitives/SKILL.md`). It ships the reference files this rule assumes exist — `Theme.kt`, `Type.kt`, `Dimens.kt`, and the three-file color layer under `colors/`.
+
 | Need | Use | Never |
 |---|---|---|
 | Colors | `<THEME>.colors.<token>` | `MaterialTheme.colorScheme.*`, `Color(...)`, `Color.Red` |
@@ -44,6 +46,20 @@ If the same literal appears twice in the codebase, promote it to a token:
 2. Populate light and dark values in `<THEME>` initializers
 3. Update both usages to consume the new token
 
+## Structure
+
+The theme has **three color layers**, ordered by distance from the UI:
+
+1. **Primitive** (`colors/PrimitiveColors.kt`, `internal`) — the raw palette (`slate500`, `primary500`, `red500`, …). Never referenced from UI code.
+2. **Extended** (`colors/ExtendedColors.kt`) — `interface ExtendedColors` with semantic tokens (`backgroundPrimaryDefault`, `textDefault`, `borderMuted`, …) and its light + dark implementations. This is the app's color surface — everything the UI reads passes through here.
+3. **Material** (`colors/{Light,Dark}MaterialColorScheme.kt`, `internal`) — thin mapping from primitives to Material3 roles (`primary`, `onPrimary`, `background`, `error`, `outline`). Consumed only by `MaterialTheme(colorScheme = ...)` inside the `<THEME>` composable; UI code never reads from here.
+
+**Dimensions and typography sit outside the color layers.** `Dimens` is a plain `object` with nested `Spacing`/`Padding`/`CornerRadius`/`IconSize`/`BorderWidth` sub-objects — no CompositionLocal needed because dimensions don't change with dark mode. Typography flows through `MaterialTheme.typography.*` (the only permitted `MaterialTheme.*` accessor).
+
+**Accessor pattern** — `<THEME>` is both a `@Composable fun` (the theme wrapper) and an `object` (the token accessor), same shape as Material3's `MaterialTheme`. Colors go through a `@Composable get()` that reads `LocalExtendedColors.current`; dimensions are plain `object` references. See the `theme-primitives` skill for the reference file layout.
+
+**Adding a new color token** — add the field to `ExtendedColors`, populate both light and dark implementations, and update usages. Adding a new primitive is only necessary when the new semantic token needs a shade that doesn't already exist in the palette.
+
 ## Common violations
 
 ```kotlin
@@ -67,3 +83,5 @@ Text("Hi", color = <THEME>.colors.primary)
 Spacer(modifier = Modifier.height(<THEME>.spacing.large))
 Card(shape = RoundedCornerShape(<THEME>.cornerRadius.medium)) { }
 ```
+
+- `PrimitiveColors.slate500` referenced directly from a `@Composable` → route through an `ExtendedColors` semantic token; UI code never reads primitives directly. If the semantic token you need doesn't exist yet, add it to `ExtendedColors` (and both light/dark implementations).
