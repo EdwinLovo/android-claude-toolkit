@@ -40,6 +40,7 @@ android-claude-toolkit/
     │   ├── screen-anatomy/SKILL.md
     │   ├── data-feature/SKILL.md
     │   ├── navigation-primitives/SKILL.md # First-time setup: NavigationRoute, NavigationAction, ViewModelNav
+    │   ├── repository-primitives/SKILL.md # First-time setup: BaseRepository, ApiResult, BasePagingSource
     │   └── audit-branch/SKILL.md          # context: fork — runs the audit in an isolated sub-agent
     └── commands/                          # Slash commands
         ├── new-screen.md

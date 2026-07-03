@@ -137,7 +137,6 @@ interface AuthRepository {
 
 - `suspend fun` + `ApiResult<T>` → one-shot operations (mutations, single fetches)
 - `fun` returning `Flow<ApiResult<T>>` → reactive/streaming reads
-- `val <resource>Invalidated: SharedFlow<Unit>` → include only when mutations exist and consumers need to react
 
 ---
 

@@ -25,7 +25,7 @@ Examples:
 | Layer | What to test | How |
 |---|---|---|
 | ViewModel | State transitions in `handleEvent` | `MainDispatcherRule` + Turbine on `uiState.test { }` |
-| Repository | Behavior around `ApiResult` — success, error, invalidation emit | Fake data source; assert `ApiResult` variant + emitted `SharedFlow` |
+| Repository | Behavior around `ApiResult` — success and error paths | Fake data source; assert `ApiResult` variant |
 | Mapper | Field-by-field correctness | Instantiate the network type, call `.toDomain()`, assert equality |
 | Use case | Composition + business logic | Stub the repositories, verify delegation and combined output |
 | Delegate | Same as ViewModel but for the delegate's `handleEvent` | `MainDispatcherRule` + Turbine on delegate's `uiState` |
