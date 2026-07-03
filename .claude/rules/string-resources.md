@@ -76,7 +76,7 @@ fun TabRow(tab: CatalogTab) {
 ## Hard rules
 
 - **No literal strings** in composables — everything through `stringResource` / `pluralStringResource`
-- **String args passed to model factories** (e.g. `AppError("Something went wrong")`) also use resources — either `context.getString(R.string.error_generic)` at the call site or a `UiText.StringResource(R.string.error_generic)` wrapper
+- **User-visible strings outside a composable use `UiText`, never `Context.getString(...)`.** ViewModels, delegates, repositories, use cases, and domain-model factories carry `UiText` values (`UiText.StringResource(R.string.xxx)` for keyed strings, `UiText.DynamicString(value)` for pre-resolved server text). The composable renders via `uiText.asString()` — no `Context` needed. See `rules/error-handling.md` for the `UiText` definition.
 - **Enum UI labels use `@param:StringRes val labelRes: Int`** — never a `String` field
 - **Content descriptions use `stringResource` too** (see `rules/icons.md`) — never hardcoded
 - **No string concatenation for translated output** — use format placeholders (`%1$s`, `%2$d`) so translators can reorder
@@ -95,3 +95,5 @@ Non-user-facing strings can be literals:
 - Enum with a `label: String` field → change to `@param:StringRes val labelRes: Int`
 - `contentDescription = "Delete"` → `contentDescription = stringResource(R.string.delete)`
 - Same string key defined twice for two features → collapse into one shared key
+- `context.getString(R.string.xxx)` called from a ViewModel / delegate / repository / use case / domain model → produce a `UiText.StringResource(R.string.xxx)` instead; the composable renders it with `uiText.asString()`
+- Non-UI layer injects `@ApplicationContext Context` just to call `getString` → drop the injection; return `UiText` and let the composable resolve
