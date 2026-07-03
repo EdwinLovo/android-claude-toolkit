@@ -1,6 +1,6 @@
 ---
 name: project-scaffold
-description: One-time project scaffold — asks about networking library and paging, creates the presentation/data/domain folder tree, invokes theme-primitives + navigation-primitives + repository-primitives + misc-primitives, and writes app-shell stubs (Application, MainActivity, AppNavHost) plus DI module stubs. Invoke via /init-project or when starting a fresh Android project against this toolkit.
+description: One-time project scaffold — asks about networking library and paging, creates the presentation/data/domain folder tree, invokes theme-primitives + navigation-primitives + repository-primitives + misc-primitives + component-primitives, and writes app-shell stubs (Application, MainActivity, AppNavHost) plus DI module stubs. Invoke via /init-project or when starting a fresh Android project against this toolkit.
 allowed-tools:
   - Read
   - Write
@@ -13,7 +13,7 @@ allowed-tools:
 
 # Project scaffold
 
-Interactive first-run scaffolder. Composes four primitives skills (`theme-primitives`, `navigation-primitives`, `repository-primitives`, `misc-primitives`) and layers on the project-specific app-shell + DI stubs. Produces everything a fresh project needs under `<PKG_ROOT>/` — folder tree, primitives, utilities, app-shell stubs, DI module stubs — with placeholders substituted.
+Interactive first-run scaffolder. Composes five primitives skills (`theme-primitives`, `navigation-primitives`, `repository-primitives`, `misc-primitives`, `component-primitives`) and layers on the project-specific app-shell + DI stubs. Produces everything a fresh project needs under `<PKG_ROOT>/` — folder tree, primitives, utilities, app-shell stubs, DI module stubs — with placeholders substituted.
 
 **Out of scope:** `build.gradle.kts`, `libs.versions.toml`, `AndroidManifest.xml`, signing config, feature code, real palette values. See the "Next steps" checklist emitted at the end.
 
@@ -131,7 +131,8 @@ Each of these existing skills covers one slice of the scaffold. Invoke them via 
    - `data/repository/BaseRepository.kt` (Apollo or Retrofit variant, per Round 1 answer)
    - `data/remote/HttpConstants.kt` (Apollo only)
    - `data/paging/BasePagingSource.kt` (only if Paging 3 = yes)
-4. **`misc-primitives`** — writes 11 utility files under `presentation/utils/`, `presentation/utils/ext/`, `presentation/ui/components/scaffold/`, and `presentation/ui/components/dialogs/`: `ErrorEventBus.kt`, `UiText.kt`, `ObserveAsEvents.kt`, `OnLifecycleResumed.kt`, `OnLifecycleEvent.kt`, `Constants.kt`, `ext/StateFlowExt.kt`, `<PREVIEW>.kt`, `<ICONS>.kt`, `<SCAFFOLD>.kt`, `<DIALOG>.kt`. Pass the resolved `<PREVIEW>` / `<ICONS>` / `<SCAFFOLD>` / `<DIALOG>` / `<THEME>` / `<PROJECT_NAME>` values so its file writes land pre-substituted.
+4. **`misc-primitives`** — writes 9 utility files under `presentation/utils/` and `presentation/utils/ext/`: `ErrorEventBus.kt`, `UiText.kt`, `ObserveAsEvents.kt`, `OnLifecycleResumed.kt`, `OnLifecycleEvent.kt`, `Constants.kt`, `ext/StateFlowExt.kt`, `<PREVIEW>.kt`, `<ICONS>.kt`. Pass the resolved `<PREVIEW>` / `<ICONS>` / `<THEME>` / `<PROJECT_NAME>` values so its file writes land pre-substituted.
+5. **`component-primitives`** — writes 4 shared UI component files under `presentation/ui/components/scaffold/` and `presentation/ui/components/dialogs/`: `<SCAFFOLD>.kt`, `<DIALOG>.kt`, `<PROJECT_NAME>AlertDialog.kt`, `<PROJECT_NAME>ErrorAlertDialog.kt`. Always runs — the MainScreen stub renders `<PROJECT_NAME>ErrorAlertDialog`. Pass the resolved `<SCAFFOLD>` / `<DIALOG>` / `<THEME>` / `<PROJECT_NAME>` values.
 
 If Round 1 answered "No" to Include ErrorEventBus, tell `misc-primitives` to skip `ErrorEventBus.kt`, `UiText.kt`, and `ObserveAsEvents.kt`. If Round 1 answered "No" to preview infrastructure, tell it to skip `<PREVIEW>.kt`.
 
@@ -447,5 +448,5 @@ Print this to the user verbatim (adjusting `[NET_LIB]` to the resolved value). E
 ## References
 
 - Rules: `rules/folder-structure.md`, `rules/theming-and-tokens.md`, `rules/navigation.md`, `rules/repositories.md`, `rules/error-handling.md`, `rules/screens.md`, `rules/viewmodels.md`, `rules/dependency-injection.md`, `rules/previews.md`, `rules/lifecycle.md`
-- Sub-skills: `theme-primitives`, `navigation-primitives`, `repository-primitives`, `misc-primitives`
+- Sub-skills: `theme-primitives`, `navigation-primitives`, `repository-primitives`, `misc-primitives`, `component-primitives`
 - Post-init commands: `/new-screen`, `/new-data-feature`, `/audit-branch`

@@ -14,7 +14,8 @@ Idempotent-friendly caveat: this command **overwrites** files with the same path
 - **Theme layer** — via the `theme-primitives` skill (7 files under `presentation/ui/theme/` + `colors/`)
 - **Navigation layer** — via the `navigation-primitives` skill (3 files under `presentation/ui/navigation/`)
 - **Repository layer** — via the `repository-primitives` skill (`ApiResult.kt`, `BaseRepository.kt` for the chosen networking library, `HttpConstants.kt` if Apollo, `BasePagingSource.kt` if paging)
-- **Utility files + shared components** — via the `misc-primitives` skill: `ErrorEventBus.kt`, `UiText.kt`, `ObserveAsEvents.kt`, `OnLifecycleResumed.kt`, `OnLifecycleEvent.kt`, `Constants.kt`, `StateFlowExt.kt`, the `<PREVIEW>` annotations + `<PROJECT_NAME>PreviewContainer`, plus `<SCAFFOLD>.kt`, `<DIALOG>.kt`, `<PROJECT_NAME>AlertDialog.kt`, `<PROJECT_NAME>ErrorAlertDialog.kt`, and `<ICONS>.kt` stubs
+- **Utility files** — via the `misc-primitives` skill: `ErrorEventBus.kt`, `UiText.kt`, `ObserveAsEvents.kt`, `OnLifecycleResumed.kt`, `OnLifecycleEvent.kt`, `Constants.kt`, `StateFlowExt.kt`, the `<PREVIEW>` annotations + `<PROJECT_NAME>PreviewContainer`, and the `<ICONS>.kt` stub
+- **Shared UI components** — via the `component-primitives` skill: `<SCAFFOLD>.kt`, `<DIALOG>.kt`, `<PROJECT_NAME>AlertDialog.kt`, `<PROJECT_NAME>ErrorAlertDialog.kt`
 - **App-shell stubs** — `<PROJECT_NAME>Application.kt` (with `@HiltAndroidApp`), `MainActivity.kt` (with `@AndroidEntryPoint` and `setContent { <THEME> { ... } }`), `AppNavHost.kt`, `MainScreen.kt`, `MainViewModel.kt`
 - **DI module stubs** — `ApiModule.kt`, `RepositoryModule.kt`, plus `DataSourceModule.kt` if Apollo
 

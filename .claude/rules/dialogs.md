@@ -12,6 +12,8 @@ Every dialog in the app is wrapped in `<DIALOG>` (`presentation/ui/components/di
 
 **Never** re-declare `Dialog { }`, `Surface { }`, or size logic directly inside a dialog composable. That's exactly what `<DIALOG>` is for.
 
+**Setting up the dialog components in a new project:** invoke the `component-primitives` skill (`.claude/skills/component-primitives/SKILL.md`). It ships `<DIALOG>.kt`, `<PROJECT_NAME>AlertDialog.kt`, and `<PROJECT_NAME>ErrorAlertDialog.kt` under `presentation/ui/components/dialogs/`.
+
 ## Custom dialog
 
 ```kotlin

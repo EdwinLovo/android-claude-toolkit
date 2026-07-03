@@ -9,6 +9,8 @@ paths:
 
 All icons come from `<ICONS>` (`presentation/utils/<ICONS>.kt`). **`androidx.compose.material.icons.Icons.*` is banned** in UI code — the goal is one shared visual vocabulary controlled by design, not the Material default set.
 
+**Setting up the `<ICONS>` registry in a new project:** invoke the `misc-primitives` skill (`.claude/skills/misc-primitives/SKILL.md`). It ships the `<ICONS>.kt` stub under `presentation/utils/`.
+
 ## Adding a new icon
 
 1. Get the SVG or Vector Drawable XML from design.

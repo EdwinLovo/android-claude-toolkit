@@ -9,6 +9,8 @@ paths:
 
 Every screen renders through the app's single `<SCAFFOLD>` composable — one component, shared by every feature. That's how background color, insets, and any global chrome stay consistent across screens. Screens pass their own top/bottom bars as slot arguments; they never fork a per-feature scaffold variant.
 
+**Setting up `<SCAFFOLD>` in a new project:** invoke the `component-primitives` skill (`.claude/skills/component-primitives/SKILL.md`). It ships `<SCAFFOLD>.kt` under `presentation/ui/components/scaffold/`.
+
 Every screen file has **exactly two composables**: a public entry that collects state and delegates to a private stateless content composable.
 
 ## Template — no delegates

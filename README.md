@@ -42,7 +42,8 @@ android-claude-toolkit/
     │   ├── navigation-primitives/SKILL.md # First-time setup: NavigationRoute, NavigationAction, ViewModelNav
     │   ├── repository-primitives/SKILL.md # First-time setup: BaseRepository, ApiResult, BasePagingSource
     │   ├── theme-primitives/SKILL.md      # First-time setup: Theme composable + accessor, Dimens, PrimitiveColors, ExtendedColors, Material schemes
-    │   ├── misc-primitives/SKILL.md       # First-time setup: ErrorEventBus, UiText, StateFlowExt, preview annotations, lifecycle helpers, <SCAFFOLD>/<DIALOG>/<ICONS>
+    │   ├── misc-primitives/SKILL.md       # First-time setup: ErrorEventBus, UiText, StateFlowExt, preview annotations, lifecycle helpers, <ICONS>
+    │   ├── component-primitives/SKILL.md  # First-time setup: <SCAFFOLD>, <DIALOG>, <PROJECT_NAME>AlertDialog / ErrorAlertDialog
     │   ├── project-scaffold/SKILL.md      # First-run orchestrator (invoked by /init-project)
     │   └── audit-branch/SKILL.md          # context: fork — runs the audit in an isolated sub-agent
     └── commands/                          # Slash commands
