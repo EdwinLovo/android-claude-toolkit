@@ -15,8 +15,8 @@ Members appear in this order. Deviating breaks the mental model reviewers use.
 
 1. **Injected dependencies** (`@Inject constructor(...)`)
 2. **`uiState` backing field** — `StateFlow<T>` public type, `MutableStateFlow<T>` field
-3. **Other flows / paging** — `val items: Flow<PagingData<T>> = uiState.map { ... }.cachedIn(viewModelScope)`
-4. **Delegate state getters** (only when using delegates) — `val <child>State: StateFlow<T> get() = <child>Delegate.uiState`
+3. **Delegate state getters** (only when using delegates) — `val <child>State: StateFlow<T> get() = <child>Delegate.uiState`
+4. **Other flows / paging** — `val items: Flow<PagingData<T>> = uiState.map { ... }.cachedIn(viewModelScope)`
 5. **`init { }` block** — one-time subscriptions, delegate init calls
 6. **`handleEvent(event)`** — sealed-when dispatch to private setter functions
 7. **Private setter functions** — one per event or event group; each calls `uiState.reduce { copy(...) }`
@@ -78,7 +78,8 @@ class ExampleViewModel @Inject constructor(
 - **`MutableStateFlow` is never public.** Only `StateFlow<T>` is exposed.
 - **No `uiState.value = ...` assignment.** Use `uiState.reduce { copy(...) }`.
 - **No direct `MutableStateFlow.update { }`** — use the `reduce` extension in `presentation/utils/ext/StateFlowExt.kt` for consistency.
-- **`handleEvent` is a single function** — one `when`, one branch per event or event group. No overloads.
+- **`handleEvent(event: <Screen>Event)` is a single function** — one `when`, one branch per event or event group. Never overload it.
+- **Shared delegates (in `presentation/delegates/<name>/`) get their own public `handle<Delegate>Event(event: <Delegate>Event)` function on the ViewModel** — the delegate's event type is standalone, not a subtype of `<Screen>Event`, so its dispatch sits alongside `handleEvent`, not inside its `when`. Feature-scoped delegates (in `ux/<feature>/delegates/`) keep the subtype pattern and route through `handleEvent`. See `rules/delegates.md`.
 - **`else` branch never appears** in `handleEvent` when the parent event is sealed.
 - **`companion object` at the bottom.** Never file-level `private const val` in a VM file.
 - **No `@Composable` in a ViewModel file.** Composables live with the screen.
